@@ -1,7 +1,13 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { Box, AppBar, Toolbar, Typography, Button } from "@mui/material";
+import {
+  Box,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+} from "@mui/material";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import CheckBalance from "./pages/CheckBalance";
 import SendCrypto from "./pages/SendCrypto";
@@ -16,6 +22,7 @@ function App() {
   const location = useLocation();
   const nav = useNavigate();
   const [currentPage, setCurrentPage] = React.useState(location.pathname);
+  const [etherBackend, setEtherBackend] = React.useState("ethersjs");
   const userContext = React.useContext(UserContext);
 
   React.useEffect(() => {
@@ -27,27 +34,28 @@ function App() {
       (async () => {
         console.log("making request");
         const res = await fetch(`${API_ADDRESS}/auth/user`, {
-          method: 'GET',
+          method: "GET",
           credentials: "include",
           headers: {
-            'Access-Control-Allow-Origin': 'http://localhost:5000'
-          }
+            "Access-Control-Allow-Origin": "http://localhost:5000",
+          },
         });
         if (res.status === 200) {
           const json = await res.json();
           console.log(json);
           userContext.user = {
             name: json.user.name,
-            private_key:  json.user.private_key,
-            username:  json.user.username,
-            wallet_address: json.user.wallet_address
-          }
-          nav('/user')
+            private_key: json.user.private_key,
+            username: json.user.username,
+            wallet_address: json.user.wallet_address,
+          };
+          nav("/user");
         }
-
       })();
     }
   }, []);
+
+
 
   const getButtonColor = (path: string) => {
     return currentPage === path ? "primary" : "inherit";

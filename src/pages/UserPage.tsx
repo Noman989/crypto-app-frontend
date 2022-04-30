@@ -1,5 +1,15 @@
 import React from "react";
-import { Box, Paper, Typography, Avatar, Button, Select, MenuItem } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Typography,
+  Avatar,
+  Button,
+  Select,
+  MenuItem,
+  ToggleButton,
+  ToggleButtonGroup
+} from "@mui/material";
 import { UserContext } from "../context";
 import ListWrapper from "../components/ListWrapper";
 import { API_ADDRESS } from "../constants";
@@ -18,7 +28,18 @@ const UserPage: React.FC = () => {
   const [data, setData] = React.useState<IData | null>(null);
   const [chain, setChain] = React.useState<string>("ropsten");
   const [cookies, setCookies] = useCookies(["token"]);
+  const [etherBackend, setEtherBackend] = React.useState("ethersjs");
   const nav = useNavigate();
+  
+  React.useEffect(() => {
+    (async () => {
+      const res = await fetch(`${API_ADDRESS}/api/switchbackend`, {
+        method: "GET",
+      });
+      const json = await res.json();
+      setEtherBackend(json.backend);
+    })();
+  }, []);
 
   const Logout = () => {
     (async () => {
@@ -34,7 +55,7 @@ const UserPage: React.FC = () => {
     })();
   };
 
-  const getData = (address: string | undefined ) => {
+  const getData = (address: string | undefined) => {
     if (!address) return 0;
     (async () => {
       const res = await fetch(
@@ -104,20 +125,53 @@ const UserPage: React.FC = () => {
           </Typography>
         </ListWrapper>
         <ListWrapper>
+          <Typography variant="subtitle1">
+            <b>Backend :</b>
+          </Typography>
+          <ToggleButtonGroup
+            size={"small"}
+            value={etherBackend}
+            exclusive
+            onChange={(e, val) => {
+              (async () => {
+                if (val !== null) {
+                  const res = await fetch(`${API_ADDRESS}/api/switchbackend`, {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      backend: val,
+                    }),
+                  });
+                  if (res.status === 200) setEtherBackend(val);
+                }
+              })();
+            }}
+            aria-label="text alignment"
+          >
+            <ToggleButton value="ethersjs" aria-label="left aligned">
+              <Typography>Ethers</Typography>
+            </ToggleButton>
+            <ToggleButton value="web3js" aria-label="centered">
+              <Typography>Web3</Typography>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </ListWrapper>
+        <ListWrapper>
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 2,
-              flexGrow: 1
+              flexGrow: 1,
             }}
-            
           >
             <Typography variant="subtitle1">
               <b>Chain :</b>
             </Typography>
             <Select
-              sx={{flexGrow: 1}}
+              sx={{ flexGrow: 1 }}
               value={chain}
               onChange={(e) => {
                 setChain(e.target.value);
@@ -127,28 +181,35 @@ const UserPage: React.FC = () => {
               <MenuItem value={"mainnet"}>Mainnet</MenuItem>
             </Select>
           </Box>
-          <Button variant="text" onClick={() => {getData(userContext.user?.wallet_address)}}>Get Balance</Button>
+          <Button
+            variant="text"
+            onClick={() => {
+              getData(userContext.user?.wallet_address);
+            }}
+          >
+            Get Balance
+          </Button>
         </ListWrapper>
         {data && (
           <React.Fragment>
             <ListWrapper>
-            <Typography variant="subtitle1">
-              <b>Value in ether :</b>
-            </Typography>
-            <Typography variant="subtitle1">{data.balanceInEther}</Typography>
-          </ListWrapper>
-          <ListWrapper>
-            <Typography variant="subtitle1">
-              <b>Value in USD :</b>
-            </Typography>
-            <Typography variant="subtitle1">{data.balanceInUSD}</Typography>
-          </ListWrapper>
-          <ListWrapper>
-            <Typography variant="subtitle1">
-              <b>Value in Euro :</b>
-            </Typography>
-            <Typography variant="subtitle1">{data.balanceInEuro}</Typography>
-          </ListWrapper>
+              <Typography variant="subtitle1">
+                <b>Value in ether :</b>
+              </Typography>
+              <Typography variant="subtitle1">{data.balanceInEther}</Typography>
+            </ListWrapper>
+            <ListWrapper>
+              <Typography variant="subtitle1">
+                <b>Value in USD :</b>
+              </Typography>
+              <Typography variant="subtitle1">{data.balanceInUSD}</Typography>
+            </ListWrapper>
+            <ListWrapper>
+              <Typography variant="subtitle1">
+                <b>Value in Euro :</b>
+              </Typography>
+              <Typography variant="subtitle1">{data.balanceInEuro}</Typography>
+            </ListWrapper>
           </React.Fragment>
         )}
         <ListWrapper>
